@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample</title>
+    <style>
+       h1 {
+        font: 200% calibri;
+       }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center"><strong>Аналитика по зарплатам и городам для профессии {{name}}</strong></h1>
+    <img src="D:\PyCharm.Projects\pythonProject6\graph.png" width="800" align="center">
+    <h1 style="text-align:center; "><strong>Статистика по годам</strong></h1>
+    <table style="font-family: Verdana, Geneva, Tahoma, sans-serif; width: 100%; border-collapse:collapse;">
+        <thead>
+            <tr>
+                {% for column_cells in columns_1: %}
+                <th style="border: 1px solid black; font-size: 18px; padding: 5px; text-align:center">
+                    {{column_cells}}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in statistics: %}
+            <tr>
+                {% for data in row: %}
+                <td style="padding: 5px; border: 1px solid black; font-size: 14px; font-weight: normal; text-align:center">
+                   {{data}}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h1 style="text-align:center"><strong>Статистика по городам</strong></h1>
+    <table>
+        <tr>
+            <td>
+                <table style="font-family: Verdana, Geneva, Tahoma, sans-serif; width: 100%; border-collapse:collapse;" align="left">
+                    <thead>
+                        <tr>
+                            {% for column_cells in ["Город", "Уровень зарплат"]: %}
+                            <th style="border: 1px solid black; font-size: 18px; padding: 5px; text-align:center">
+                                {{column_cells}}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in salary_by_cities.items(): %}
+                        <tr>
+                            {% for element in item: %}
+                            <td style="padding: 5px; border: 1px solid black; font-size: 14px; font-weight: normal; text-align:center">
+                               {{element}}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+            <td>
+                <table style="font-family: Verdana, Geneva, Tahoma, sans-serif; width: 100%; border-collapse:collapse;" align="right">
+                    <thead>
+                        <tr>
+                            {% for column_cells in ["Город", "Доля вакансий"]: %}
+                            <th style="border: 1px solid black; font-size: 18px; padding: 5px; text-align:center">
+                                {{column_cells}}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in vacs_by_cities.items(): %}
+                        <tr>
+                            {% for element in item: %}
+                            <td style="padding: 5px; border: 1px solid black; font-size: 14px; font-weight: normal; text-align:center">
+                               {{element}}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
