@@ -12,6 +12,7 @@ import pdfkit
 import pandas as pd
 import arrow
 import maya
+from multiprocessing import Process, Pool, Queue, Lock
 
 currency_to_rub = {
     "AZN": 35.68,
@@ -29,6 +30,7 @@ currency_to_rub = {
 
 class Vacancy:
     """Класс, содержащий параметры вакансии
+
      Attributes:
          name (str): Название вакансии
          salary_from (float): Нижняя граница вилки оклада
@@ -39,8 +41,10 @@ class Vacancy:
     """
     def __init__(self, items):
         """Инициализирует объект Vacancy, выполняет конвертацию границ оклада в float
+
         Args:
             items (list): Список значений, формируемых с помощью класса DataSet
+
         >>> type(Vacancy(['Программист', 70000, 500000, 'RUR', 'Москва', '2022-05-31T17:32:31+0300'])).__name__
         'Vacancy'
         >>> Vacancy(['Программист', 70000, 500000, 'RUR', 'Москва', '2022-05-31T17:32:31+0300']).name
@@ -66,14 +70,17 @@ class Vacancy:
 
 class DataSet:
     """Класс, подготавливающий данные из csv-файла для передачи в класс Vacancy
+
     Attributes:
         file_name (str): Имя файла
         vacancies (list): Список вакансий
     """
     def __init__(self, file_name):
         """Инициализирует объект DataSet
+
         Args:
             file_name (str): Имя файла
+
         >>> type(DataSet("file_name")).__name__
         'DataSet'
         >>> DataSet("vacancies.csv").file_name
@@ -85,27 +92,16 @@ class DataSet:
         self.vacancies = []
 
     @staticmethod
-    def get_dataset(file_name):
+    def get_dataset(year):
         """Формирует данные
+
         Args:
             file_name (str): Имя csv-файла
+
         Returns:
             list: Список вакансий
         """
-        def get_files_by_years():
-            """Формирует отдельные csv-файлы с вакансиями по годам в папке csv_files_by_years"""
-            pd.set_option("expand_frame_repr", False)
-            df = pd.read_csv("vacancies_by_year.csv")
-            df["years"] = df["published_at"].apply(lambda s: s[:4])
-
-            years = df["years"].unique()
-            for year in years:
-                data = df[df["years"] == year]
-                data[["name", "salary_from", "salary_to", "salary_currency",
-                      "area_name", "published_at"]] \
-                    .to_csv(rf"csv_files_by_years\{year}.csv", index=False)
-
-        get_files_by_years()
+        file_name = fr"csv_files_by_years\{str(year)}.csv"
         data = DataSet.csv_reader(file_name)
         data_array = DataSet.csv_filer(data[0], data[1])
         dataset = DataSet(file_name)
@@ -118,7 +114,9 @@ class DataSet:
             # vacancy.published_at = DataSet.get_year_with_maya(vacancy.published_at)
             vacancy.published_at = DataSet.get_year_optimized(vacancy.published_at)
             dataset.vacancies.append(vacancy)
-        return dataset
+        # return dataset
+        input_data = InputConnect()
+        input_data.print_data_dict(input_data, dataset)
 
     # @staticmethod
     # def get_year(date):
@@ -159,8 +157,10 @@ class DataSet:
     @staticmethod
     def get_year_optimized(date):
         """Форматирует дату публикации вакансии (четвертый способ - самый быстрый. Берет срез строки)
+
         Args:
             date (str): Дата
+
         Returns:
               int: Год публикации вакансии
         """
@@ -169,8 +169,10 @@ class DataSet:
     @staticmethod
     def csv_reader(file_name):
         """Считывает данные из csv-файла
+
         Args:
             file_name (str): Имя csv-файла
+
         Returns:
             list: Названия параметров вакансий
             list: Параметры вакансий
@@ -183,11 +185,14 @@ class DataSet:
     @staticmethod
     def csv_filer(list_naming, reader):
         """Формирует список вакансий
+
         Args:
             list_naming (list): Названия параметров вакансий
             reader (list): Параматры вакансий
+
         Returns:
             list: Список всех вакансий с названиями их параметров
+
         >>> DataSet("file_name").csv_filer(['Название', 'Описание', 'Средняя з/п'], [['Программист', 'Middle Frontend', '150000']])
         [{'Название': 'Программист', 'Описание': 'Middle Frontend', 'Средняя з/п': '150000'}]
         >>> DataSet("file_name").csv_filer([], [[]])
@@ -205,10 +210,13 @@ class DataSet:
     @staticmethod
     def remove_html_tags(vacancy):
         """Удаляет html-теги из параметров вакансии
+
         Args:
             vacancy (list): Параметры вакансии
+
         Returns:
             list: Параметры вакансии с удаленными html-тегами
+
         >>> DataSet("file_name").remove_html_tags(["Программист<p></p>", "<strong>Особенности</strong>"])
         ['Программист', 'Особенности']
         >>> DataSet("file_name").remove_html_tags(["Програм<strong>ми</strong >ст", "<h1>Особен</   h1 >ности"])
@@ -223,12 +231,14 @@ class DataSet:
 
 class InputConnect:
     """Класс, отвечающий за сбор статистики по вакансиям. Получает данные от пользователя, передает статистику классу Report
+
     Attributes:
         file_name (str): Имя файла
         profession_name (str): Название профессии
     """
     def __init__(self):
         """Инициализирует объект InputConnect
+
         >>> type(InputConnect()).__name__
         'InputConnect'
         """
@@ -240,23 +250,10 @@ class InputConnect:
     @staticmethod
     def print_data_dict(self, data: DataSet):
         """Выводит на экран статистику о вакансиях
+
         Args:
             data (DataSet): Список вакансий
         """
-        def get_correct_vacancy_rate(data: DataSet):
-            """Отвечает за правильный рассчет количества вакансий по городам в процентом отношении к общему количеству вакансий
-            Args:
-                data (DataSet): Список вакансий
-            Returns:
-                dict: Отсортированный по убыванию количества вакансий словарь вакансий
-            """
-            data.vacancy_rate_by_city = {x: round(y / len(data.vacancies), 4) for x, y in
-                                         data.vacancy_rate_by_city.items()}
-            data.vacancy_rate_by_city = {k: v for k, v in data.vacancy_rate_by_city.items() if math.floor(v * 100 >= 1)}
-            return dict(sorted(data.vacancy_rate_by_city.items(), key=lambda item: item[1], reverse=True))
-        data.vacancy_rate_by_city = InputConnect.get_vacancy_rate_by_city(data)
-        data.salary_by_city = InputConnect.get_salary_by_city(data)
-        data.vacancy_rate_by_city = get_correct_vacancy_rate(data)
         data.vacancies_count_by_year = InputConnect.get_vacancies_count_by_year(data, "None")
         data.salary_by_year = InputConnect.get_salary_by_name(data, "None")
         data.vacancies_count_by_profession_name = InputConnect.get_vacancies_count_by_year(data, self.profession_name)
@@ -266,25 +263,20 @@ class InputConnect:
         vacs_by_years = data.vacancies_count_by_year
         vac_salary_by_years = data.salary_by_profession_name
         vac_counts_by_years = data.vacancies_count_by_profession_name
-        salary_by_cities = dict(list(data.salary_by_city.items())[:10])
-        vacs_by_cities = dict(list(data.vacancy_rate_by_city.items())[:10])
-
-        Report(salary_by_year, vacs_by_years, vac_salary_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities,
-               self.profession_name)
 
         print(f"Динамика уровня зарплат по годам: ", salary_by_year)
         print(f"Динамика количества вакансий по годам: ", vacs_by_years)
         print(f"Динамика уровня зарплат по годам для выбранной профессии: ", vac_salary_by_years)
         print(f"Динамика количества вакансий по годам для выбранной профессии: ", vac_counts_by_years)
-        print(f"Уровень зарплат по городам (в порядке убывания): ", salary_by_cities)
-        print(f"Доля вакансий по городам (в порядке убывания): ", vacs_by_cities)
 
     @staticmethod
     def get_vacancies_count_by_year(data: DataSet, name):
         """Считает количество вакансий по годам
+
         Args:
             data (DataSet): Список вакансий
             name (str): Название профессии
+
         Returns:
             dict: Словарь с количеством вакансий по годам
         """
@@ -299,9 +291,11 @@ class InputConnect:
     @staticmethod
     def get_salary_by_name(data: DataSet, name):
         """Преобразовывает данные о зарплате у каждой вакансии
+
         Args:
             data (DataSet): Список вакансий
             name (str): Название профессии
+
         Returns:
             dict: Словарь с преобразованными данными о зарплатах
         """
@@ -324,8 +318,10 @@ class InputConnect:
     @staticmethod
     def get_vacancy_rate_by_city(data: DataSet):
         """Приводит статистику вакансий по городам
+
         Args:
             data (DataSet): Список вакансий
+
         Returns:
             dict: Словарь со статистикой вакансий по городам
         """
@@ -337,6 +333,7 @@ class InputConnect:
     @staticmethod
     def set_value_by_name(vacancy_dict: dict, name):
         """Вспомогательный метод для подсчета вакансий по городам
+
         Args:
             vacancy_dict (dict): Список вакансий
             name (str): Название города
@@ -349,8 +346,10 @@ class InputConnect:
     @staticmethod
     def convert_currency(vacancy):
         """Конвертирует валюту в рубли для параметра "Валюта оклада" у вакансий
+
         Args:
             vacancy (Vacancy): объект класса Vacancy
+
         >>> InputConnect().convert_currency(Vacancy(["name", "40000.0", "80000.0", "RUR", "area", "date"]))
         60000
         >>> InputConnect().convert_currency(Vacancy(["name", "35000.0", "70000.0", "AZN", "area", "date"]))
@@ -361,13 +360,13 @@ class InputConnect:
         rate = currency_to_rub[vacancy.salary_currency]
         return int((vacancy.salary_from * rate + vacancy.salary_to * rate) / 2)
 
-    # Vacancy("name", "salary_from", "salary_to", "currency", "area_name", "published_at")
-
     @staticmethod
     def get_salary_by_city(data: DataSet):
         """Приводит статистику вакансий по уровню зарплат в городах
+
         Args:
             data (DataSet): Список вакансий
+
         Returns:
             dict: Отсортированный по убыванию уровня зарплат словарь вакансий
         """
@@ -385,6 +384,7 @@ class InputConnect:
 
 class Report:
     """Класс, отвечающий за визуализацию статистики вакансий
+
     Attributes:
         salary_by_year (dict): Уровень зарплат всех вакансий по годам
         vacs_by_years (dict):  Количество всех вакансий по годам
@@ -396,6 +396,7 @@ class Report:
     """
     def __init__(self, salary_by_year, vacs_by_years, vac_salary_by_years, vac_counts_by_years, salary_by_cities, vacs_by_cities, profession_name):
         """Инициализирует объект Report
+
         Args:
             salary_by_year (dict): Уровень зарплат всех вакансий по годам
             vacs_by_years (dict):  Количество всех вакансий по годам
@@ -404,6 +405,7 @@ class Report:
             salary_by_cities (dict): Список городов с самыми высокими зарплатами конкретной профессии
             vacs_by_cities (dict): Список с отношениями количества вакансий по конкретной профессии к общему количеству вакансий по городам
             profession_name (str): Название профессии
+
         >>> type(Report({2022: 204316}, {2022: 428}, {2022: 103546}, {2022: 21}, {'Казань': 156337, 'Москва': 142291}, {'Москва': 0.1893}, "Программист")).__name__
         'Report'
         >>> Report({2022: 204316}, {2022: 428}, {2022: 103546}, {2022: 21}, {'Казань': 156337, 'Москва': 142291}, {'Москва': 0.1893}, "Программист").salary_by_year
@@ -437,6 +439,7 @@ class Report:
     def generate_excel(salary_by_year, vacs_by_years, vac_salary_by_years, vac_counts_by_years, salary_by_cities,
                        vacs_by_cities, profession):
         """Формирует таблицу Excel с данными о вакансиях по выбраннной профессии
+
         Args:
             salary_by_year (dict): Уровень зарплат всех вакансий по годам
             vacs_by_years (dict):  Количество всех вакансий по годам
@@ -478,8 +481,10 @@ class Report:
 
         def as_text(value):
             """Вспомогательный метод, отвечающий за правильную визуализацию ячеек таблицы и конвертацию их в строку
+
             Args:
                 value (int or float to str): Значение ячейки таблицы
+
             Returns:
                 str: Стрковое значение ячейки таблицы
             """
@@ -504,6 +509,7 @@ class Report:
     def generate_image(salary_by_year, vacs_by_years, vac_salary_by_years, vac_counts_by_years, salary_by_cities,
                        vacs_by_cities, profession):
         """Формирует изображение с графиками статистики по вакансиям выбраннной профессии
+
         Args:
             salary_by_year (dict): Уровень зарплат всех вакансий по годам
             vacs_by_years (dict):  Количество всех вакансий по годам
@@ -553,6 +559,7 @@ class Report:
     def generate_pdf(salary_by_year, vacs_by_years, vac_salary_by_years, vac_counts_by_years, salary_by_cities,
                        vacs_by_cities, profession):
         """Формирует pdf-файл со статистикой вакансий по выбраннной профессии
+
         Args:
             salary_by_year (dict): Уровень зарплат всех вакансий по годам
             vacs_by_years (dict):  Количество всех вакансий по годам
@@ -579,6 +586,9 @@ class Report:
         pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": ""})
 
 
-input_data = InputConnect()
-data = DataSet.get_dataset(input_data.file_name)
-input_data.print_data_dict(input_data, data)
+if __name__ == "__main__":
+    p = Pool(12)
+    years = []
+    for year in range(2007, 2023):
+        years.append(str(year))
+    p.map(DataSet.get_dataset, years)
