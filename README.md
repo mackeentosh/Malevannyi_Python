@@ -22,3 +22,10 @@
 Скриншот разделенных csv-файлов
 
 ![image](https://user-images.githubusercontent.com/102906241/206799052-272bf4f1-e159-4f51-986d-2847e568602a.png)
+
+3.2.2
+Время выполнения программы без многопоточности: 
+![image](https://user-images.githubusercontent.com/102906241/206871468-2f25e267-1bc8-47af-b64b-0f4a24332a76.png)
+
+Время выполнения программы с многопоточностью:
+![image](https://user-images.githubusercontent.com/102906241/206871537-73ee5cac-34e3-4056-8a6f-3f4751ced375.png)
