@@ -19,6 +19,22 @@
 ![image](https://user-images.githubusercontent.com/102906241/206798892-1170015e-6f2c-402d-a3c4-d94440bab5ad.png)
 
 3.2.1
+
 Скриншот разделенных csv-файлов
 
 ![image](https://user-images.githubusercontent.com/102906241/206799052-272bf4f1-e159-4f51-986d-2847e568602a.png)
+
+3.2.2
+
+Время выполнения программы без многопоточности: 
+![image](https://user-images.githubusercontent.com/102906241/206871657-6c2872b1-5532-4cb9-acc4-fec69f11fb9b.png)
+
+Время выполнения программы с многопоточностью:
+![image](https://user-images.githubusercontent.com/102906241/206871537-73ee5cac-34e3-4056-8a6f-3f4751ced375.png)
+
+3.3.1
+
+Скриншот частотности, с которой встречаются различные валюты за 2003 – 2022 года:
+
+![image](https://user-images.githubusercontent.com/102906241/208976782-e024ba2f-0a4e-41a1-8798-50ef5e529d69.png)
+
