@@ -31,3 +31,9 @@
 
 Время выполнения программы с многопоточностью:
 ![image](https://user-images.githubusercontent.com/102906241/206871537-73ee5cac-34e3-4056-8a6f-3f4751ced375.png)
+
+3.3.1
+
+Скриншот частотности с которой встречаются различные валюты за 2003 – 2022 года:
+![image](https://user-images.githubusercontent.com/102906241/208976782-e024ba2f-0a4e-41a1-8798-50ef5e529d69.png)
+
