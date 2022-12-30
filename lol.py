@@ -11,21 +11,8 @@ import pandas as pd
 
 
 class DataSet:
-    """
-    Класс для хранения списка вакансий.
-
-    Attributes:
-        file_name (str): Название файла
-        vacancies_objects (list): Список вакансий
-    """
 
     def __init__(self, file_name):
-        """
-        Конструктор для инициализация объекта DataSet, который создает поле для хранения списка вакансий
-
-        Args:
-             file_name (str): Название файла
-        """
         self.file_name = file_name
         self.salary_by_year = dict()
         self.vacancies_count_by_year = dict()
@@ -37,21 +24,11 @@ class DataSet:
 
 
 class InputConnect:
-    """Класс для ввода данных и формирования отчетности о вакансиях
-
-    Args:
-        params (tuple): Кортеж с названием файла и профессии
-    """
-
     def __init__(self):
-        """Конструктор для инициализации объекта InputConnect"""
         self.file_name, self.profession_name, self.area_name = InputConnect.get_params()
 
     @staticmethod
     def get_params():
-        """Статический метод для ввода данные о вакансии
-        :return: Кортеж с названием файла и профессии
-        """
         file_name = input("Введите название файла: ")
         profession_name = input("Введите название профессии: ")
         area_name = input("Введите название региона: ")
@@ -59,10 +36,6 @@ class InputConnect:
 
     @staticmethod
     def print_data_dict(self, data: DataSet):
-        """Вычисляет и печатает в консоль словари со статистикой о вакансиях
-        :param self: Объект класса InputConnect
-        :param data: Объект класса DataSet
-        """
         df = pd.read_csv(data.file_name)
         df['salary'] = df['salary'].fillna(0)
         df['salary'] = df['salary'].astype("int64")
@@ -90,58 +63,31 @@ class InputConnect:
 
 
 class Report:
-    """Класс для формирования отчетности в виде pdf, excel или png файла"""
-
     @staticmethod
     def generate_excel(profession_name, data: DataSet):
-        """Метод для генерации excel файла по названию профессии, после запуска данного метода
-        файл с расширением xlsx появится в локальной директории проекта.
-
-        :param profession_name: Название профессии
-        :return: None
-        """
-
         def as_text(value):
-            """Функция, которая преобразует входное значение в тип str
-            :param value: Any
-            :return: str или "" Если value is None
-            """
             if value is None:
                 return ""
             return str(value)
 
         def set_max_length(worksheet):
-            """Устанавливает максимальную длинну колонки в таблицу
-            :param worksheet: Рабочая область таблицы
-            """
             for column_cells in worksheet.columns:
                 length = max(len(as_text(cell.value)) for cell in column_cells)
                 worksheet.column_dimensions[get_column_letter(column_cells[0].column)].width = length + 2
 
         def set_format_percent(worksheet):
-            """Устанавливает в 5 колонке формат отображения данных в виде процентов
-            :param worksheet: Рабочая область таблицы
-            """
             for i, column_cells in enumerate(worksheet.columns):
                 if i == 4:
                     for cell in column_cells:
                         cell.number_format = FORMAT_PERCENTAGE_00
 
         def set_border_style(worksheet):
-            """Устанавливает стиль границам заполненных ячеек
-            :param worksheet: Рабочая область таблицы
-            """
             for column_cells in worksheet.columns:
                 for cell in column_cells:
                     bd = Side(style="thin", color="000000")
                     cell.border = Border(left=bd, top=bd, right=bd, bottom=bd)
 
         def set_headers(headers, head_range):
-            """Устанавливает в первый ряд заголовки колонок
-            :param headers: Список заголовок
-            :param head_range: Диапазон значений для заголовок
-            :return:
-            """
             for i, cell in enumerate(head_range):
                 cell.value = headers[i]
                 cell.font = Font(size=11, b=True)
@@ -179,15 +125,7 @@ class Report:
 
     @staticmethod
     def generate_image(profession_name, data: DataSet):
-        """Метод для генерирования картинки по названию профессии с графиками
-        после запуска данного метода файл с расширением .png появится в локальной директории проекта.
-        :param profession_name: Название професии
-        """
-
         def myfunc(item):
-            """Фукнция, которая устанавливает символ \n в строку, если в ней имеет символ ' ' или '-'
-            :param item: Строка
-            """
             if item.__contains__(' '):
                 return item[:item.index(' ')] + '\n' + item[item.index(' ') + 1:]
             elif item.__contains__('-'):
@@ -242,11 +180,6 @@ class Report:
 
     @staticmethod
     def generate_pdf(profession_name, data: DataSet):
-        """Метода для генерации отчетности с графиком и таблицами.
-        После запуска данного метода файл с расширением .pdf появится в локальной директории проекта.
-
-        :param profession_name: Название профессии
-        """
         Report.generate_excel(profession_name, data)
         Report.generate_image(profession_name, data)
         name = profession_name
@@ -259,12 +192,11 @@ class Report:
                 if type(sheet_2.cell(row, col).value).__name__ == "float":
                     sheet_2.cell(row, col).value = str(round(sheet_2.cell(row, col).value * 100, 2)) + '%'
 
-        options = {'enable-local-file-access': None}
         env = Environment(loader=FileSystemLoader('.'))
-        template = env.get_template("pdf_template_area.html")
+        template = env.get_template("pdf_template_2.html")
         pdf_template = template.render({'name': name, 'image_file': image_file, 'sheet_1': sheet_1, 'sheet_2': sheet_2})
-        config = pdfkit.configuration(wkhtmltopdf=r'D:\wkhtmltopdf\bin\wkhtmltopdf.exe')
-        pdfkit.from_string(pdf_template, 'report3_4_3.pdf', configuration=config, options=options)
+        config = pdfkit.configuration(wkhtmltopdf=r'D:\wkhtmltox\bin\wkhtmltopdf.exe')
+        pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": ""})
 
 
 inputparam = InputConnect()

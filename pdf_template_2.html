@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report</title>
+</head>
+<body>
+    <h1 style="font-family: Verdana, sans-serif; text-align: center; font-size: 36px">
+        Аналитика по зарплатам и городам для профессии {{name}}
+    </h1>
+   <img style="text-align: center" src="file:///D:/PyCharm.Projects/Malevannyi_Python/{{image_file}}">
+
+    <h2 style="font-family: Verdana, sans-serif; text-align: center; font-size: 36px">
+        Статистика по годам
+    </h2>
+
+    <table style="font-family: Verdana, Geneva, Tahoma, sans-serif; width: 100%; border-collapse: collapse;">
+        <thead>
+         <tr>
+             {% for column_cells in sheet1.columns: %}
+             <th style="border: 1px solid black; font-size: 18px; padding: 5px; text-align: center">
+                 {{ column_cells[0].value}}
+             </th>
+             {% endfor %}
+         </tr>
+        </thead>
+        <tbody>
+          {% for row in range(2, sheet1.max_row + 1): %}
+          <tr>
+            {% for col in range(1, sheet1.max_column + 1): %}
+            <td style="padding: 5px; border: 1px solid black; font-size: 14px; font-weight: normal; text-align: center">
+                {{ sheet1.cell(row, col).value }}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="font-family: Verdana, sans-serif; text-align: center; font-size: 36px">
+        Статистика по городам
+    </h2>
+    <div style="display: -webkit-box; -webkit-box-pack: justify; width: 95%">
+        <table class="demo-1" style="margin-left: 20px; font-family: Verdana, Geneva, Tahoma, sans-serif; width: 48%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    {% for column_cells in sheet2["A1":"B1"][0]: %}
+                    <th style="border: 1px solid black; font-size: 20px; padding: 5px; text-align: center">
+                        {{column_cells.value}}
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in range(2, sheet2.max_row + 1): %}
+                <tr>
+                    {% for col in range(1, 3): %}
+                    <td style="padding: 5px; border: 1px solid black; font-size: 16px; font-weight: normal; text-align: center">
+                        {{ sheet2.cell(row, col).value }}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table class="demo-2" style="font-family: Verdana, Geneva, Tahoma, sans-serif; width: 48%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                {% for column_cells in sheet2["D1":"E1"][0]: %}
+                <th style="border: 1px solid black; font-size: 20px; padding: 5px; text-align: center">
+                    {{column_cells.value}}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in range(2, sheet2.max_row + 1): %}
+            <tr>
+                {% for col in range(4, 6): %}
+                <td style="padding: 5px; border: 1px solid black; font-size: 16px; font-weight: normal; text-align: center">
+                    {{sheet2.cell(row, col).value}}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</body>
+</html>

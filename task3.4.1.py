@@ -25,7 +25,7 @@ def convert_currencies_in_file():
     dataframe["salary"] = dataframe["salary"].astype(str) + " " + + dataframe["salary_currency"] + " " + dataframe["published_at"]
     dataframe["salary"] = dataframe["salary"].apply(lambda x: convert_currency(x, dataframe_curr))
     dataframe = dataframe.drop(columns=['salary_from', 'salary_to', 'salary_currency'])
-    dataframe.head(100).to_csv("converted_dataframe.csv", index=False)
+    dataframe.to_csv("converted_dataframe.csv", index=False)
 
 
 convert_currencies_in_file()
